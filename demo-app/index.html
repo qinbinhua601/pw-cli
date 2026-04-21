@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Playwright CLI Demo</title>
+    <style>
+      :root {
+        --bg: #f4efe8;
+        --panel: rgba(255, 255, 255, 0.88);
+        --ink: #16212d;
+        --accent: #c14d28;
+        --accent-soft: #f5d4c8;
+        --line: rgba(22, 33, 45, 0.12);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: Georgia, "Times New Roman", serif;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at top left, #ffe7cf 0, transparent 30%),
+          linear-gradient(180deg, #fbf7f0 0, var(--bg) 100%);
+      }
+
+      .shell {
+        width: min(1080px, calc(100% - 32px));
+        margin: 32px auto 48px;
+      }
+
+      .hero {
+        display: grid;
+        gap: 20px;
+        grid-template-columns: 1.4fr 1fr;
+        align-items: center;
+        padding: 28px;
+        border: 1px solid var(--line);
+        border-radius: 28px;
+        background: var(--panel);
+        box-shadow: 0 18px 60px rgba(44, 53, 63, 0.08);
+      }
+
+      h1,
+      h2,
+      p {
+        margin: 0;
+      }
+
+      .eyebrow {
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        font-size: 12px;
+        color: var(--accent);
+        margin-bottom: 10px;
+      }
+
+      .hero h1 {
+        font-size: clamp(34px, 5vw, 58px);
+        line-height: 0.95;
+        margin-bottom: 14px;
+      }
+
+      .hero p {
+        line-height: 1.6;
+        max-width: 52ch;
+      }
+
+      .card {
+        margin-top: 22px;
+        padding: 22px;
+        border-radius: 22px;
+        background: linear-gradient(135deg, #fff 0, #f9efe8 100%);
+        border: 1px solid rgba(193, 77, 40, 0.16);
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 12px;
+        border-radius: 999px;
+        background: var(--accent-soft);
+        color: var(--accent);
+        font-size: 13px;
+        margin-bottom: 12px;
+      }
+
+      .layout {
+        display: grid;
+        gap: 20px;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        margin-top: 24px;
+      }
+
+      .panel {
+        padding: 20px;
+        border-radius: 22px;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.82);
+      }
+
+      .panel h2 {
+        margin-bottom: 12px;
+      }
+
+      .toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 12px;
+      }
+
+      button,
+      a.doc-link {
+        border: 0;
+        cursor: pointer;
+        padding: 10px 14px;
+        border-radius: 999px;
+        font: inherit;
+        background: var(--ink);
+        color: white;
+        text-decoration: none;
+      }
+
+      button.secondary {
+        background: white;
+        color: var(--ink);
+        border: 1px solid var(--line);
+      }
+
+      #stats {
+        min-height: 76px;
+        padding: 14px;
+        border-radius: 16px;
+        background: #fff;
+        border: 1px dashed rgba(22, 33, 45, 0.18);
+      }
+
+      #editor {
+        min-height: 148px;
+        padding: 16px;
+        border-radius: 16px;
+        border: 1px solid var(--line);
+        background: white;
+        outline: none;
+        line-height: 1.6;
+      }
+
+      .doc-grid {
+        display: grid;
+        gap: 12px;
+      }
+
+      canvas {
+        width: 100%;
+        height: auto;
+        display: block;
+        border-radius: 18px;
+        background: linear-gradient(180deg, #fff 0, #f7efe8 100%);
+      }
+    </style>
+  </head>
+  <body>
+    <main class="shell">
+      <section class="hero">
+        <div>
+          <div class="eyebrow">Playwright CLI Demo</div>
+          <h1>把命令行能力和视觉回归放在一个最小样例里。</h1>
+          <p>
+            这个页面专门给 Playwright CLI 的 demo 使用，覆盖脚本录制、普通测试、UI 调试、Trace、
+            接口 Mock、全页截图、局部截图、Canvas 回归、编辑器交互和批量页面回归。
+          </p>
+          <article class="card" data-testid="hero-card">
+            <div class="badge" style="font-size: 20px;">Local screenshot target</div>
+            <p>
+              这张卡片用于演示 `locator.toHaveScreenshot()`，比整页截图更稳定，适合组件级视觉回归。
+            </p>
+          </article>
+        </div>
+        <div class="panel">
+          <h2>接口 Mock 面板</h2>
+          <div class="toolbar">
+            <button id="load-stats">加载统计数据</button>
+            <button class="secondary" id="toggle-theme">切换强调色</button>
+          </div>
+          <div id="stats" aria-live="polite">等待加载接口数据...</div>
+        </div>
+      </section>
+
+      <section class="layout">
+        <article class="panel">
+          <h2>Canvas 渲染</h2>
+          <p style="margin-bottom: 12px">用于演示 `locator('canvas').toHaveScreenshot()`。</p>
+          <canvas id="scene" width="480" height="260" aria-label="chart canvas"></canvas>
+        </article>
+
+        <article class="panel">
+          <h2>ProseMirror 风格编辑区</h2>
+          <div class="toolbar">
+            <button id="highlight-selection">高亮首段</button>
+          </div>
+          <div id="editor" contenteditable="true">
+            <p><strong>Release Note</strong></p>
+            <p>Playwright 可以同时验证 DOM 结构、输入行为和截图结果。</p>
+          </div>
+        </article>
+
+        <article class="panel">
+          <h2>批量文档页</h2>
+          <div class="doc-grid">
+            <a class="doc-link" href="/docs/doc-1.html">打开文档 1</a>
+            <a class="doc-link" href="/docs/doc-2.html">打开文档 2</a>
+            <a class="doc-link" href="/docs/doc-3.html">打开文档 3</a>
+          </div>
+        </article>
+      </section>
+    </main>
+
+    <script>
+      const root = document.documentElement;
+      const stats = document.getElementById('stats');
+      const scene = document.getElementById('scene');
+      const editor = document.getElementById('editor');
+
+      function drawCanvas(accent) {
+        const ctx = scene.getContext('2d');
+        ctx.clearRect(0, 0, scene.width, scene.height);
+
+        const gradient = ctx.createLinearGradient(0, 0, scene.width, scene.height);
+        gradient.addColorStop(0, '#fff7ef');
+        gradient.addColorStop(1, '#fde2d6');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, scene.width, scene.height);
+
+        ctx.fillStyle = '#16212d';
+        ctx.font = 'bold 22px Georgia';
+        ctx.fillText('Canvas Regression', 24, 38);
+
+        const bars = [80, 120, 160, 110, 190];
+        bars.forEach((height, index) => {
+          const x = 32 + index * 84;
+          const y = scene.height - height - 22;
+          ctx.fillStyle = accent;
+          ctx.fillRect(x, y, 48, height);
+          ctx.fillStyle = '#16212d';
+          ctx.fillText(String(index + 1), x + 18, scene.height - 8);
+        });
+      }
+
+      async function loadStats() {
+        stats.textContent = '加载中...';
+        const response = await fetch('/api/stats');
+        const data = await response.json();
+        stats.innerHTML = `
+          <strong>${data.title}</strong>
+          <p>用户数：${data.users}</p>
+          <p>转化率：${data.conversionRate}</p>
+        `;
+      }
+
+      document.getElementById('load-stats').addEventListener('click', loadStats);
+      document.getElementById('toggle-theme').addEventListener('click', () => {
+        const next = root.style.getPropertyValue('--accent') === '#33673b' ? '#c14d28' : '#33673b';
+        root.style.setProperty('--accent', next);
+        root.style.setProperty('--accent-soft', next === '#33673b' ? '#d9eddc' : '#f5d4c8');
+        drawCanvas(next);
+      });
+
+      document.getElementById('highlight-selection').addEventListener('click', () => {
+        const firstParagraph = editor.querySelector('p:last-of-type');
+        const range = document.createRange();
+        range.selectNodeContents(firstParagraph);
+        const selection = window.getSelection();
+        selection.removeAllRanges();
+        selection.addRange(range);
+        document.execCommand('hiliteColor', false, '#fff1a8');
+      });
+
+      drawCanvas('#c14d28');
+    </script>
+  </body>
+</html>

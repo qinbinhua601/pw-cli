@@ -1,0 +1,22 @@
+{
+  "name": "pw-cli-demo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Playwright CLI demo covering the usages described in info.md",
+  "scripts": {
+    "serve": "python3 -m http.server 4173 --directory demo-app",
+    "test": "playwright test",
+    "test:safari": "PW_INCLUDE_WEBKIT=1 playwright test --project=webkit",
+    "test:smoke": "playwright test --grep @smoke",
+    "test:visual": "playwright test --grep @visual",
+    "test:ui": "playwright test --ui",
+    "test:trace": "playwright test --trace on",
+    "test:update": "playwright test --update-snapshots",
+    "trace:show": "playwright show-trace",
+    "codegen": "playwright codegen http://127.0.0.1:4173",
+    "report": "playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.54.2"
+  }
+}
